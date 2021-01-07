@@ -202,16 +202,33 @@ data$jul2<-data$julian
 data$jul2[data$jul2>183]<-365-data$julian[data$jul2>183]
 
 
+mycolors <- colorRampPalette(brewer.pal(8, "Dark2"))(12)
+plot(1:12,col=mycolors,cex=5,pch=17)
+levels(data$class)
 
-
+mycolors2<-as.character(#7E6EA2,"#7E6EA2" "#7D8F31","#E0A604",
+                "#B3499C","#1B9E77","#A0A811","#666666",
+                "#93752C","#CF3F76","#B78415", "#8E7037")
+   
 tab_model(test1b,digits = 4)
 plot_model(test1b, type = "pred", terms = c("year","jul2"))
 plottest1b<-plot_model(test1b, type = "pred", terms = c("year"))
 plottest1b
 mod.fig2<-plottest1b+theme_bw()+
   ylab("Cell size [LN µm³]")+
-  xlab("year")+
-  geom_jitter(data=data,aes(x=year,y=LN.cell.vol),size=.1,alpha=.01,col="blue")+
+  xlab("Year")+
+  theme(legend.position = "none")+
+  geom_jitter(data=data,aes(x=year,y=LN.cell.vol,col=class),size=.1,alpha=.1)+
+  scale_color_manual(values = mycolors,
+                     labels= c("Cyanophyceae","Dinophyceae",
+                               "Dictyochophyceae",
+                               "Coccolithophyceae",
+                               "Bacillariophyceae",
+                               "Coscinodiscophyceae",
+                               "Fragilariophyceae","Chlorophyceae",
+                               "Euglenophyceae","Pyramimonadophyceae",
+                               "Trebouxiophyceae",
+                               "Bacillariophyceae incertae sedis")) +
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
@@ -312,7 +329,7 @@ unique(data$stationID)
 unique(allenv$StationID)
 allenv$stationID<-allenv$StationID
 
-year.data<- ddply(data3, .(phylum, class, order, genus, species,year,stationID), summarise, 
+year.data<- ddply(data, .(phylum, class, order, genus, species,year,stationID), summarise, 
                     mean= mean(cell.vol, na.rm = T),
                     sd= sd(cell.vol, na.rm = T),
                     cv=sd/mean,
@@ -351,9 +368,14 @@ violin.raw<-ggplot(data,
                fun.y = "median",
                geom = "point",size=3,
                col="red")+
+  stat_summary(mapping = aes(x=as.factor(year),
+                             y=LN.cell.vol),
+               fun.y = "mean",shape=17,
+               geom = "point",size=3,
+               col="white")+
   theme_bw()+
   ylab("Cell size [LN µm³]")+
-  xlab("year")+
+  xlab("Year")+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
@@ -400,7 +422,7 @@ domspec<-ggplot(dominance,
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  facet_wrap(~specname)
+  facet_wrap(~specname,scales="free_y")
 
 domspec
 
@@ -412,8 +434,8 @@ summary(steep$specname)
 steepspec<-ggplot(steep, 
                 aes(year,LN.cell.vol))+
   geom_point(alpha=.1,col="darkgrey")+
-  #geom_smooth(method="loess",col="blue")+
-  geom_smooth(method="lm",col="blue")+
+  geom_smooth(method="loess",col="blue")+
+  geom_smooth(method="lm",col="red")+
   theme(legend.position="none")+
   theme_bw()+
   ylab("Cell size [LN µm³]")+
@@ -423,7 +445,7 @@ steepspec<-ggplot(steep,
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  facet_wrap(~specname)
+  facet_wrap(~specname,scales="free_y")
 
 steepspec
 
@@ -536,7 +558,7 @@ test6d<-lmer(log(size_cwsd_abu+1)~year+jul2
 
 tab_model(test6a,test6b,test6c,test6d,digits=4)
 
-tab_model(test1b,test3,test4,test6a,digits=4)
+tab_model(test3,test4,digits=4)
 tab1<-tab_model(test1b,digits = 4)
 
 obj<-plot_model(test3, type = "pred", pred.type="re",terms = c("year"))
@@ -546,8 +568,8 @@ obj2
 obj3<-plot_model(test6a, type = "pred", pred.type="re",terms = c("year"))
 obj3
 mod.fig3<-obj+theme_bw()+
-  ylab("CWD log cell size [LN µm³]")+
-  xlab("year")+
+  ylab("CWM log cell size [LN µm³]")+
+  xlab("Year")+
   geom_jitter(data=pp.cwm,aes(x=year,y=lnsize_cwm_abu),alpha=.1,col="blue")+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -559,8 +581,8 @@ mod.fig3
 
 
 mod.fig4<-obj2+theme_bw()+
-  ylab("weighted variance log cell size [LN µm³]")+
-  xlab("year")+
+  ylab("Weighted variance log cell size [LN µm³]")+
+  xlab("Year")+
   geom_jitter(data=pp.cwm,aes(x=year,y=lnsize_cwsd_abu),alpha=.1,col="darkgreen")+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -582,3 +604,186 @@ mod.fig5<-obj3+theme_bw()+
 
 mod.fig5
 
+
+
+
+
+
+dim(allenv)
+dim(pp.cwm)
+unique(pp.cwm$stationID)
+unique(allenv$stationID)
+names(pp.cwm)
+
+year.cwm<- ddply(pp.cwm, .(year,stationID), summarise, 
+                  mean.cwm= mean(lnsize_cwm_abu, na.rm = T),
+                  sd.cwm= sd(lnsize_cwm_abu, na.rm = T),
+                  mean.var= mean(lnsize_cwsd_abu, na.rm = T),
+                  sd.var= sd(lnsize_cwsd_abu, na.rm = T))
+
+summary(year.cwm)
+
+env2<-merge(allenv,year.cwm, by=c("stationID","year"),all=F)
+names(stationinfo)
+summary(env2)
+unique(env2$stationID)
+
+names(env2)
+
+pairs.panels(env2[,c(4:6,8,11,18,20)],method="spearman")
+env2<-env2[env2$temperature>8,]
+envmod2<-lmer(mean.cwm~temperature+
+                log(total.n)+
+                log(suspended.particulates)+
+                pH+
+                salinity+
+                S+
+                (1|stationID),
+              data=env2)
+
+summary(envmod2)
+tab_model(envmod2)
+
+
+envmod3<-lmer(mean.var~temperature+log(total.n)+log(suspended.particulates)+
+                pH+S+biomass+
+                (1|stationID),
+              data=env2)
+
+summary(envmod3)
+tab_model(envmod3)
+
+
+fig5a<-ggplot(env2,aes(log(total.n),mean.cwm,col=stationID))+
+  theme_bw()+
+  ylab("weighted mean log cell size")+
+  xlab("year")+
+  geom_point()+
+  #geom_jitter(data=pp.cwm,aes(x=year,y=lnsize_cwsd_abu),alpha=.1,col="darkgreen")+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+fig5a
+
+
+
+#grid.arrange(violin.raw,mod.fig2,ncol=1)
+#grid.arrange(spec.slope,ncol=1)
+#grid.arrange(spec.slope,domspec,ncol=1)
+#grid.arrange(mod.fig3,mod.fig4,ncol=2)
+
+
+names(mean.USI)
+mean.USI$specname<-do.call(paste, c(mean.USI[c("genus", "species")], sep = "_"))
+mean.USI$specname<-as.factor(mean.USI$specname)
+summary(mean.USI)
+mean.USI$S<-1
+length(unique(mean.USI$specname))
+names(mean.USI)
+mean.USI$year<-year(mean.USI$date)
+year.statinfo <-ddply(mean.USI, .(year,stationID), summarise, 
+                mean.biovol= mean(biovol),
+                Stot=length(unique(specname)))
+
+
+env2<-merge(env2,year.statinfo, by=c("stationID","year"),all=F)
+
+
+names(env2)
+
+pairs.panels(env2[,c(4:6,8,10:11,22,18,20)],method="spearman")
+envmod11<-lmer(mean.cwm~temperature+
+                log(total.n)+
+                #log(total.p)+ 
+                log(suspended.particulates)+
+                pH+
+                salinity+
+                S+ 
+                Stot+
+                log(mean.biovol)+
+                (1|stationID),
+              data=env2)
+
+summary(envmod11)
+tab_model(envmod11)
+library(cAIC4)
+stepcAIC(envmod11)
+
+envmod12<-lmer(mean.var~temperature+
+                 log(total.n)+
+                 log(suspended.particulates)+
+                 pH+
+                 salinity+
+                 S+
+                 log(mean.biovol)+
+                 (1|stationID),
+               data=env2)
+
+summary(envmod12)
+tab_model(envmod12)
+
+tab_model(envmod11,envmod12,digits=4)
+
+
+
+
+fig5a<-ggplot(env2,aes(x=log(total.n),y=mean.cwm,col=stationID))+
+  theme_bw()+
+  ylab("weighted mean log cell size")+
+  xlab("Log total N")+
+  geom_point(size=2)+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+fig5a
+
+
+
+fig5b<-ggplot(env2,aes(x=temperature,y=mean.cwm,col=stationID))+
+  theme_bw()+
+  ylab("weighted mean log cell size")+
+  xlab("temperature")+
+  geom_point(size=2)+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+fig5b
+
+
+
+fig5c<-ggplot(env2,aes(x=salinity,y=mean.cwm,col=stationID))+
+  theme_bw()+
+  ylab("weighted mean log cell size")+
+  xlab("salinity")+
+  geom_point(size=2)+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+fig5c
+
+
+fig5d<-ggplot(env2,aes(x=S,y=mean.cwm,col=stationID))+
+  theme_bw()+
+  ylab("weighted mean log cell size")+
+  xlab("Richness")+
+  geom_point(size=2)+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+fig5d
+grid.arrange(fig5a,fig5b,fig5c,fig5d,ncol=2)
