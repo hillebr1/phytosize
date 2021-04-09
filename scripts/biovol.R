@@ -23,6 +23,9 @@ data$mean.size[spindle11]<- 2/15*pi*data$DimA[spindle11]*data$DimB[spindle11]*da
 rhomb<-grep("rhomb", data$equation)
 data$mean.size[rhomb]<- 1/2*data$DimA[rhomb]*data$DimB[rhomb]*data$DimC[rhomb]*data$corr.fac[rhomb]
 
+rhomb2<-grep("rhomb2", data$equation)
+data$mean.size[rhomb2]<- 1/2*data$DimA[rhomb2]*.2*data$DimA[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2]
+
 
 pyramid<-grep("pyramid", data$equation)
 
@@ -4434,5 +4437,186 @@ data$cell30[cuboid1]<-
                 data$A30[cuboid1]*data$DimB[cuboid1]**2*data$corr.fac[cuboid1],
                 NA))
 
+##ALTER TO RHOMB2
+data$cell1[rhomb2]<-
+  ifelse(!is.na(data$A1[rhomb2])&!is.na(data$C1[rhomb2]),
+         1/2*data$A1[rhomb2]*.2*data$A1[rhomb2]*data$C1[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A1[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A1[rhomb2]*.2*data$A1[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
 
 
+data$cell2[rhomb2]<-
+  ifelse(!is.na(data$A2[rhomb2])&!is.na(data$C2[rhomb2]),
+         1/2*data$A2[rhomb2]*.2*data$A2[rhomb2]*data$C2[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A2[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A2[rhomb2]*.2*data$A2[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell3[rhomb2]<-
+  ifelse(!is.na(data$A3[rhomb2])&!is.na(data$C3[rhomb2]),
+         1/2*data$A3[rhomb2]*.2*data$A3[rhomb2]*data$C3[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A3[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A3[rhomb2]*.2*data$A3[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell4[rhomb2]<-
+  ifelse(!is.na(data$A4[rhomb2])&!is.na(data$C4[rhomb2]),
+         1/2*data$A4[rhomb2]*.2*data$A4[rhomb2]*data$C4[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A4[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A4[rhomb2]*.2*data$A4[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell5[rhomb2]<-
+  ifelse(!is.na(data$A5[rhomb2])&!is.na(data$C5[rhomb2]),
+         1/2*data$A5[rhomb2]*.2*data$A5[rhomb2]*data$C5[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A5[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A5[rhomb2]*.2*data$A5[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell6[rhomb2]<-
+  ifelse(!is.na(data$A6[rhomb2])&!is.na(data$C6[rhomb2]),
+         1/2*data$A6[rhomb2]*.2*data$A6[rhomb2]*data$C6[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A6[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A6[rhomb2]*.2*data$A6[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell7[rhomb2]<-
+  ifelse(!is.na(data$A7[rhomb2])&!is.na(data$C7[rhomb2]),
+         1/2*data$A7[rhomb2]*.2*data$A7[rhomb2]*data$C7[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A7[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A7[rhomb2]*.2*data$A7[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell8[rhomb2]<-
+  ifelse(!is.na(data$A8[rhomb2])&!is.na(data$C8[rhomb2]),
+         1/2*data$A8[rhomb2]*.2*data$A8[rhomb2]*data$C8[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A8[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A8[rhomb2]*.2*data$A8[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell9[rhomb2]<-
+  ifelse(!is.na(data$A9[rhomb2])&!is.na(data$C9[rhomb2]),
+         1/2*data$A9[rhomb2]*.2*data$A9[rhomb2]*data$C9[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A9[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A9[rhomb2]*.2*data$A9[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell10[rhomb2]<-
+  ifelse(!is.na(data$A10[rhomb2])&!is.na(data$C10[rhomb2]),
+         1/2*data$A10[rhomb2]*.2*data$A10[rhomb2]*data$C10[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A10[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A10[rhomb2]*.2*data$A10[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell11[rhomb2]<-
+  ifelse(!is.na(data$A11[rhomb2])&!is.na(data$C11[rhomb2]),
+         1/2*data$A11[rhomb2]*.2*data$A11[rhomb2]*data$C11[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A11[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A11[rhomb2]*.2*data$A11[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell12[rhomb2]<-
+  ifelse(!is.na(data$A12[rhomb2])&!is.na(data$C12[rhomb2]),
+         1/2*data$A12[rhomb2]*.2*data$A12[rhomb2]*data$C12[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A12[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A12[rhomb2]*.2*data$A12[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell13[rhomb2]<-
+  ifelse(!is.na(data$A13[rhomb2])&!is.na(data$C13[rhomb2]),
+         1/2*data$A13[rhomb2]*.2*data$A13[rhomb2]*data$C13[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A13[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A13[rhomb2]*.2*data$A13[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell14[rhomb2]<-
+  ifelse(!is.na(data$A14[rhomb2])&!is.na(data$C14[rhomb2]),
+         1/2*data$A14[rhomb2]*.2*data$A14[rhomb2]*data$C14[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A14[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A14[rhomb2]*.2*data$A14[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell15[rhomb2]<-
+  ifelse(!is.na(data$A15[rhomb2])&!is.na(data$C15[rhomb2]),
+         1/2*data$A15[rhomb2]*.2*data$A15[rhomb2]*data$C15[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A15[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A15[rhomb2]*.2*data$A15[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell16[rhomb2]<-
+  ifelse(!is.na(data$A16[rhomb2])&!is.na(data$C16[rhomb2]),
+         1/2*data$A16[rhomb2]*.2*data$A16[rhomb2]*data$C16[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A16[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A16[rhomb2]*.2*data$A16[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell17[rhomb2]<-
+  ifelse(!is.na(data$A17[rhomb2])&!is.na(data$C17[rhomb2]),
+         1/2*data$A17[rhomb2]*.2*data$A17[rhomb2]*data$C17[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A17[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A17[rhomb2]*.2*data$A17[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell18[rhomb2]<-
+  ifelse(!is.na(data$A18[rhomb2])&!is.na(data$C18[rhomb2]),
+         1/2*data$A18[rhomb2]*.2*data$A18[rhomb2]*data$C18[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A18[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A18[rhomb2]*.2*data$A18[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell19[rhomb2]<-
+  ifelse(!is.na(data$A19[rhomb2])&!is.na(data$C19[rhomb2]),
+         1/2*data$A19[rhomb2]*.2*data$A19[rhomb2]*data$C19[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A19[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A19[rhomb2]*.2*data$A19[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell20[rhomb2]<-
+  ifelse(!is.na(data$A20[rhomb2])&!is.na(data$C20[rhomb2]),
+         1/2*data$A20[rhomb2]*.2*data$A20[rhomb2]*data$C20[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A20[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A20[rhomb2]*.2*data$A20[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell21[rhomb2]<-
+  ifelse(!is.na(data$A21[rhomb2])&!is.na(data$C21[rhomb2]),
+         1/2*data$A21[rhomb2]*.2*data$A21[rhomb2]*data$C21[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A21[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A21[rhomb2]*.2*data$A21[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell22[rhomb2]<-
+  ifelse(!is.na(data$A22[rhomb2])&!is.na(data$C22[rhomb2]),
+         1/2*data$A22[rhomb2]*.2*data$A22[rhomb2]*data$C22[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A22[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A22[rhomb2]*.2*data$A22[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell23[rhomb2]<-
+  ifelse(!is.na(data$A23[rhomb2])&!is.na(data$C23[rhomb2]),
+         1/2*data$A23[rhomb2]*.2*data$A23[rhomb2]*data$C23[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A23[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A23[rhomb2]*.2*data$A23[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell24[rhomb2]<-
+  ifelse(!is.na(data$A24[rhomb2])&!is.na(data$C24[rhomb2]),
+         1/2*data$A24[rhomb2]*.2*data$A24[rhomb2]*data$C24[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A24[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A24[rhomb2]*.2*data$A24[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell25[rhomb2]<-
+  ifelse(!is.na(data$A25[rhomb2])&!is.na(data$C25[rhomb2]),
+         1/2*data$A25[rhomb2]*.2*data$A25[rhomb2]*data$C25[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A25[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A25[rhomb2]*.2*data$A25[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell26[rhomb2]<-
+  ifelse(!is.na(data$A26[rhomb2])&!is.na(data$C26[rhomb2]),
+         1/2*data$A26[rhomb2]*.2*data$A26[rhomb2]*data$C26[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A26[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A26[rhomb2]*.2*data$A26[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell27[rhomb2]<-
+  ifelse(!is.na(data$A27[rhomb2])&!is.na(data$C27[rhomb2]),
+         1/2*data$A27[rhomb2]*.2*data$A27[rhomb2]*data$C27[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A27[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A27[rhomb2]*.2*data$A27[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell28[rhomb2]<-
+  ifelse(!is.na(data$A28[rhomb2])&!is.na(data$C28[rhomb2]),
+         1/2*data$A28[rhomb2]*.2*data$A28[rhomb2]*data$C28[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A28[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A28[rhomb2]*.2*data$A28[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell29[rhomb2]<-
+  ifelse(!is.na(data$A29[rhomb2])&!is.na(data$C29[rhomb2]),
+         1/2*data$A29[rhomb2]*.2*data$A29[rhomb2]*data$C29[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A29[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A29[rhomb2]*.2*data$A29[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))
+data$cell30[rhomb2]<-
+  ifelse(!is.na(data$A30[rhomb2])&!is.na(data$C30[rhomb2]),
+         1/2*data$A30[rhomb2]*.2*data$A30[rhomb2]*data$C30[rhomb2]*data$corr.fac[rhomb2],
+         ifelse(!is.na(data$A30[rhomb2])&!is.na(data$DimC[rhomb2]),
+                1/2*data$A30[rhomb2]*.2*data$A30[rhomb2]*data$DimC[rhomb2]*data$corr.fac[rhomb2],
+                NA))

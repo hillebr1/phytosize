@@ -1207,13 +1207,23 @@ data$equation[sel1]<- "elliptic.cyl"
 
 unique(data$genus)[9]
 sel1 <- grep("Plagiogrammopsis", data$genus)
-summary(data[sel1,c("geom_ID","geom_corp","corr.fac","DimA.needed","DimB.needed","DimC.needed")])
+summary(data[sel1,c("geom_ID","geom_corp","HDB","corr.fac","DimA.needed","DimB.needed","DimC.needed")])
 data$corr.fac[sel1]<-0.9
 xyplot(DimA~year|specname+geom_ID, data[sel1,])
 xyplot(DimB~year|specname+geom_ID, data[sel1,])
 xyplot(DimC~year|specname+geom_ID, data[sel1,])
+xyplot(DimA~DimB|as.factor(year), data[sel1,])
+xyplot(DimA~DimC|as.factor(year), data[sel1,])
+xyplot(DimB~DimC|as.factor(year), data[sel1,])
+xyplot(A1~C1|as.factor(year), data[sel1,])
+plot(DimA~DimC, data[sel1,])
+plot(DimC~DimB, data[sel1,])
+hist(data$C1[sel1])
+# it seems from 2009 to 2014, DimB is just equal DimC
+# more differentiated and smaller after and before
+# B rarely measured, used as 0.2 A
 summary(data[sel1,c("DimA","DimB","DimC")])
-data$equation[sel1]<- "rhomb"
+data$equation[sel1]<- "rhomb2"
 
 unique(data$genus)[10]
 sel1 <- grep("Rhizosolenia", data$genus)
