@@ -808,6 +808,39 @@ summary(test3)
 
 tab_model(test3,digits=3)
 
+effects_cwm.year <- effects::effect(term= "year", mod= test3)
+summary(effects_cwm.year)
+x_cwm.year<-as.data.frame(effects_cwm.year)
+summary(x_cwm.year)
+x_cwm.year<-merge(x_cwm.year,dates,by="year")
+names(x_cwm.year)
+
+
+# final figures for CWM
+size.cwm.incl<-ggplot(pp.cwm.incl, 
+                      aes(date,ln_cwm_abu,col=stationID))+
+  geom_point(alpha=.2)+
+  #geom_violin(alpha=.21)+
+  #geom_smooth()+
+  theme_bw()+
+  theme(legend.position = "none")+
+  ylab("CWM cell size [LN µm³]")+
+  xlab("year")+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+size.cwm.incl
+
+cwm.incl.final<-size.cwm.incl+
+  geom_line(data=x_cwm.year, aes(x=midyear, y=fit), color="black",size=1)+ 
+  geom_line(data=x_cwm.year, aes(x=midyear, y=lower), color="darkgrey",size=1)+ 
+  geom_line(data=x_cwm.year, aes(x=midyear, y=upper), color="darkgrey",size=1)
+
+cwm.incl.final
+
 
 ## model with environmental variables
 names(env.cwm.incl)
@@ -876,6 +909,89 @@ mod.fig4<-obj2+theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
 
 mod.fig4
+
+
+
+#alternative
+effects_cwm.temp <- effects::effect(term= "temperature", mod= envmod2)
+summary(effects_cwm.temp)
+x_cwm.temp<-as.data.frame(effects_cwm.temp)
+names(x_cwm.temp)
+names(env.cwm.incl)
+      
+temp.raw.incl<-ggplot(data=env.cwm.incl,aes(x=temperature,y=ln_cwm_abu))+
+  theme_bw()+
+  ylab("CWM cell size [LN µm³]")+
+  xlab("Temperature [°C]")+
+  geom_point(aes(alpha=jul2),col="darkred")+
+  geom_line(data=x_cwm.temp, aes(x=temperature, y=fit), color="black",size=1)+ 
+  geom_line(data=x_cwm.temp, aes(x=temperature, y=lower), color="darkgrey",size=1)+ 
+  geom_line(data=x_cwm.temp, aes(x=temperature, y=upper), color="darkgrey",size=1)+
+  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
+  theme(legend.position = "none")+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+temp.raw.incl
+
+
+
+
+
+#alternative
+effects_cwm.totaln <- effects::effect(term= "log(total.n)", mod= envmod2)
+summary(effects_cwm.totaln)
+x_cwm.totaln<-as.data.frame(effects_cwm.totaln)
+names(x_cwm.totaln)
+names(env.cwm.incl)
+
+totaln.raw.incl<-ggplot(data=env.cwm.incl,aes(x=log(total.n),y=ln_cwm_abu))+
+  theme_bw()+
+  ylab("CWM cell size [LN µm³]")+
+  xlab("Total N [µM]")+
+  geom_point(aes(alpha=jul2),col="darkblue")+
+  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=fit), color="black",size=1)+ 
+  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=lower), color="darkgrey",size=1)+ 
+  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=upper), color="darkgrey",size=1)+
+  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
+  theme(legend.position = "none")+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+totaln.raw.incl
+
+
+#alternative
+effects_cwm.totalp <- effects::effect(term= "log(total.p)", mod= envmod2)
+summary(effects_cwm.totalp)
+x_cwm.totalp<-as.data.frame(effects_cwm.totalp)
+names(x_cwm.totalp)
+names(env.cwm.incl)
+
+totalp.raw.incl<-ggplot(data=env.cwm.incl,aes(x=log(total.p),y=ln_cwm_abu))+
+  theme_bw()+
+  ylab("CWM cell size [LN µm³]")+
+  xlab("Total N [µM]")+
+  geom_point(aes(alpha=jul2),col="darkgreen")+
+  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=fit), color="black",size=1)+ 
+  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=lower), color="darkgrey",size=1)+ 
+  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=upper), color="darkgrey",size=1)+
+  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
+  theme(legend.position = "none")+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+
+totalp.raw.incl
+
 
 
 #############################
@@ -971,7 +1087,7 @@ plot(1:20,col=mycolors,cex=5,pch=17)
 names(data.all)
 summary(data.all)
 mod.all.full.SID.YID<-lmer(LN.cell.vol~year+jul2
-                            +(1|phylum/class/order/genus/species)
+                            +(1|phylum/class/order/specname.unique)
                             +(1|yearID)
                             +(1|stationID),
                             data=data.all)
@@ -998,11 +1114,11 @@ fig.all.full.SID.YID
 
 #redo analyses with mean cell volumes per sample
 allppfinal$jul2<-allppfinal$julian
-allppfinal$jul2[data$jul2>183]<-365-allppfinal$julian[allppfinal$jul2>183]
+allppfinal$jul2[allppfinal$jul2>183]<-365-allppfinal$julian[allppfinal$jul2>183]
 allppfinal$yearID<-as.factor(allppfinal$year)
 #with year ID
 mod.all.mean.SID.YID<-lmer(log(mean.size)~year+jul2
-                            +(1|phylum/class/order/genus/species)
+                            +(1|phylum/class/order/specname.unique)
                             +(1|yearID)
                             +(1|stationID),
                             data=allppfinal)
@@ -1200,6 +1316,17 @@ envmod2.all<-lmer(ln_cwm_abu~temperature+
 summary(envmod2.all)
 tab_model(test3.all,envmod2.all, digits =3)
 
+tab_model(test3,test3.all,
+          envmod2, envmod2.all, digits =3)
+
+
+
+
+
+
+
+
+
 
 obj<-plot_model(test3, type = "pred", pred.type="re",terms = c("year"),title="")
 obj
@@ -1208,10 +1335,14 @@ obj2
 obj3<-plot_model(envmod2, type = "pred", pred.type="re",terms = c("total.p"),title="")
 obj3
 
+
+
+
+
 mod.fig3<-obj+theme_bw()+
   ylab("CWM cell size [LN µm³]")+
   xlab("Year")+
-  geom_jitter(data=pp.cwm.all,aes(x=year,y=ln_cwm_abu,alpha=jul2-.8),col="darkgreen")+
+  geom_point(data=pp.cwm.all,aes(x=year,y=ln_cwm_abu,alpha=jul2-.8,col=stationID))+
   theme(legend.position = "none")+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
@@ -1630,11 +1761,12 @@ selectspec
 dev.off()
 
 
-tiff(file = "~/P2021_5_pp_size/fig4.tiff", width = 2000, height = 3200, units = "px", res = 400)
-cowplot::plot_grid(mod.fig3,mod.fig4,
-                   ncol=1, nrow=2,
-                   align="v",
-                   labels = c('A', 'B'))
+tiff(file = "~/P2021_5_pp_size/fig4.tiff", width = 3600, height = 3200, units = "px", res = 400)
+cowplot::plot_grid(cwm.incl.final,temp.raw.incl,
+                   totalp.raw.incl,totaln.raw.incl,
+                   ncol=2, nrow=2,
+                   align="hv",
+                   labels = c('A', 'B','C', 'D'))
 
 dev.off()
 
@@ -1650,16 +1782,13 @@ cowplot::plot_grid(temp.de,salinity.de,pH.de,spm.de,
 dev.off()
 
 
-tiff(file = "NPNLWKN.tiff", width = 2400, height = 7200, units = "px", res = 400)
+tiff(file = "NPNLWKN.tiff", width = 3600, height = 3200, units = "px", res = 400)
 cowplot::plot_grid(TN,TP,NP,
-                   ncol=1, nrow=3,
-                   align="v",
+                   ncol=2, nrow=2,
+                   align="hv",
                    labels = c('A', 'B','C'))
 
 dev.off()
-
-
-
 
 
 ### check some sensitivity test
@@ -1670,10 +1799,12 @@ tab_model(mod.incl.full.SID.YID, mod.incl.full.SID, digits=4)
 tab_model(mod.incl.full.SID, mod.incl.no2006.SID, digits=4)
 # full model species level with and without 2006, with year ID
 tab_model(mod.incl.full.SID.YID, mod.incl.no2006.SID.YID, digits=4)
-tab_model(mod.incl.full.SID.YID, mod.incl.full.SID, mod.incl.no2006.SID.YID,digits=3)
+tab_model(mod.incl.full.SID.YID, mod.incl.full.SID, 
+          mod.incl.no2006.SID.YID,mod.all.mean.SID.YID,
+          mod.all.full.SID.YID,digits=3)
 
 # full model species level and all
-tab_model(mod.incl.full.SID.YID, mod.all.full.SID.YID, digits=4)
+tab_model(mod.incl.full.SID.YID, mod.all.mean.SID.YID, digits=4)
 
 
 
