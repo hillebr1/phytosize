@@ -951,7 +951,7 @@ names(env.cwm.incl)
 totaln.raw.incl<-ggplot(data=env.cwm.incl,aes(x=log(total.n),y=ln_cwm_abu))+
   theme_bw()+
   ylab("CWM cell size [LN µm³]")+
-  xlab("Total N [µM]")+
+  xlab("Total N [LN µM]")+
   geom_point(aes(alpha=jul2),col="darkblue")+
   geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=fit), color="black",size=1)+ 
   geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=lower), color="darkgrey",size=1)+ 
@@ -977,7 +977,7 @@ names(env.cwm.incl)
 totalp.raw.incl<-ggplot(data=env.cwm.incl,aes(x=log(total.p),y=ln_cwm_abu))+
   theme_bw()+
   ylab("CWM cell size [LN µm³]")+
-  xlab("Total N [µM]")+
+  xlab("Total P [LN µM]")+
   geom_point(aes(alpha=jul2),col="darkgreen")+
   geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=fit), color="black",size=1)+ 
   geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=lower), color="darkgrey",size=1)+ 
@@ -1812,3 +1812,46 @@ tab_model(mod.incl.no2006.SID.YID, digits=4)
 
 
 
+names(include)
+stationinfo.map<- ddply(include, .(stationID), summarise, 
+                         n.samp= length(unique(USI)),
+                         min.y= min(year, na.rm = T),
+                         max.y= max(year, na.rm = T))
+summary(stationinfo.map)
+latlong <- read_delim("~/Large Data Sets/monitoring_data_raw/stations_nlwkn_lat_long.csv", 
+                                      ";", escape_double = FALSE, trim_ws = TRUE)
+summary(latlong)
+unique(latlong$stationID)
+unique(stationinfo.map$stationID)
+
+latlong<-merge(latlong,stationinfo.map,by="stationID",all=TRUE)
+latlong$pch<-as.factor(latlong$pch)
+min(latlong$Latitude)
+max(latlong$Latitude)
+max(latlong$Longitude)
+min(latlong$Longitude)
+
+german <- map_data("worldHires")
+map<-ggplot() + geom_polygon(data = german, aes(x=long, y = lat, group = group)) + 
+  coord_fixed(xlim = c(6.5, 8.5),  ylim = c(53, 54), ratio = 1.3)
+map
+
+library(sp)
+library(ggrepel)
+gadm <- readRDS("~/Large Data Sets/monitoring_data_raw/gadm36_DEU_0_sp.rds")
+map<-ggplot() + geom_polygon(data = gadm, aes(x=long, y = lat, group = group)) + 
+  coord_fixed(xlim = c(6.5, 9),  ylim = c(53.25, 54), ratio = 1.3)+
+  geom_point(data=latlong[latlong$pch=="env",], aes(Longitude, Latitude), shape=16, col="red",size=5)+
+  geom_point(data=latlong[latlong$pch!="env",], aes(Longitude, Latitude), shape=17, col="orange",size=3)
+#geom_text_repel(data=latlong,aes(Longitude, Latitude,label=nr),col="orange") 
+  
+map
+
+
+#meta-amalysis
+names(fulldat.incl)
+library(metafor)
+
+rma(yi=lmer.slp,sei=lmer.se,
+    data=fulldat.incl)
+rma(yi=slp,sei=se.slp,data=fulldat.incl)
