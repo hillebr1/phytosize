@@ -547,6 +547,28 @@ spec.lmer.slope.relabu<-ggplot(fulldat.incl, aes(sqrt.relabu,lmer.slp,
 
 spec.lmer.slope.relabu
 
+names(fulldat.incl)
+cor.test(fulldat.incl$sqrt.relabu,fulldat.incl$lmer.slp)
+cor.test(fulldat.incl$median.size,fulldat.incl$lmer.slp)
+
+#for identification redo graph with text labels
+spec.lmer.slope.relabu.show<-ggplot(fulldat.incl, aes(sqrt.relabu,lmer.slp, 
+                                                 col=class))+
+  geom_hline(yintercept=0)+
+  geom_point(size=2*fulldat.incl$pch2,alpha=.5)+
+  theme_bw()+
+  scale_color_manual(values = mycolors[c(4,5,3,8,6)])+  
+  ylab("Fixed effect LN size~year")+
+  xlab("Relative abundance [sqrt-transf.]")+ylim(-.25,.2)+
+  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
+  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
+  theme(panel.border=element_rect(colour="black",size=1.3))+
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  geom_label_repel(data=fulldat.incl[fulldat.incl$lmer.slp>0,],aes(sqrt.relabu,lmer.slp,label=specname),col="orange") 
+#+facet_wrap(~phylum, scales="free")
+
+spec.lmer.slope.relabu.show
 
 
 
@@ -618,13 +640,45 @@ allspec
 
 #select some species
 select<-data2[data2$sqrt.relabu>.05,]
-select<-select[select$N>500,]
-select<-select[which(abs(select$sqrt.occ) > .33 | select$phylum!="Bacillariophyta") , ]
-select<-select[which(abs(select$lmer.slp) > .05 | select$phylum!="Bacillariophyta") , ]
+select<-select[select$N>100,]
+select<-select[which(abs(select$sqrt.occ) > .2 | select$phylum!="Bacillariophyta") , ]
+#select<-select[which(abs(select$lmer.slp) > .05 | select$phylum!="Bacillariophyta") , ]
+select<-select[select$specname!="Asteroplanus_karianus",]
+select<-select[select$specname!="Bacillaria_paxillifera",]
+select<-select[select$specname!="Bacteriastrum_hyalinum",]
+select<-select[select$specname!="Biddulphia_alternans",]
+select<-select[select$specname!="Brockmanniella_brockmannii",]
+select<-select[select$specname!="Chaetoceros_curvisetus",]
+select<-select[select$specname!="Chaetoceros_danicus",]
+select<-select[select$specname!="Chaetoceros_densus",]
+select<-select[select$specname!="Chaetoceros_didymus",]
 select<-select[select$specname!="Cymatosira_belgica",]
+select<-select[select$specname!="Detonula_pumila",]
+select<-select[select$specname!="Eucampia_zodiacus",]
+select<-select[select$specname!="Guinardia_flaccida ",]
+select<-select[select$specname!="Guinardia_striata",]
+select<-select[select$specname!="Gyrosigma_fasciola",]
+select<-select[select$specname!="Lithodesmium_undulatum",]
+select<-select[select$specname!="Lauderia_annulata",]
+select<-select[select$specname!="Lennoxia_faveolata",]
+select<-select[select$specname!="Mediopyxis_helysia",]
+select<-select[select$specname!="Odontella_aurita var. minima",]
+select<-select[select$specname!="Odontella_rhombus f. trigona",]
+select<-select[select$specname!="Odontella_rhombus",]
+select<-select[select$specname!="Paralia_sulcata",]
+select<-select[select$specname!="Plagiogrammopsis_vanheurckii",]
+select<-select[select$specname!="Pseudo-nitzschia_pungens",]
 select<-select[select$specname!="Thalassiosira_punctigera",]
-select<-select[select$specname!="Prorocentrum_minimum",]
-
+select<-select[select$specname!="Tripos_fusus",]
+select<-select[select$specname!="Thalassiosira_punctigera",]
+select<-select[select$specname!="Rhizosolenia_imbricata",]
+select<-select[select$specname!="Rhizosolenia_setigera f. pungens",]
+select<-select[select$specname!="Rhizosolenia_similoides",]
+select<-select[select$specname!="Guinardia_flaccida",]
+select<-select[select$specname!="Chaetoceros_debilis",]
+select<-select[select$specname!="Heterocapsa_rotundata",]
+select<-select[select$specname!="Leptocylindrus_minimus",]
+select<-select[select$specname!="Trieres_mobiliensis",]
 summary(select)
 unique(select$specname)
 
@@ -1756,7 +1810,7 @@ cowplot::plot_grid(spec.lmer.slope.size,spec.lmer.slope.relabu,
                    labels = c('A', 'B'))
 dev.off()
 
-tiff(file = "~/P2021_5_pp_size/fig3.tiff", width = 4800, height = 2400, units = "px", res = 400)
+tiff(file = "~/P2021_5_pp_size/fig3a.tiff", width = 4800, height = 2400, units = "px", res = 400)
 selectspec
 dev.off()
 
@@ -1855,3 +1909,9 @@ library(metafor)
 rma(yi=lmer.slp,sei=lmer.se,
     data=fulldat.incl)
 rma(yi=slp,sei=se.slp,data=fulldat.incl)
+
+#slope for temperature increase
+
+env_de$year<-year(env_de$date)
+summary(lm(temperature~year, env_de))
+        
