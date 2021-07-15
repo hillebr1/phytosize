@@ -481,7 +481,8 @@ spec.slope.size<-ggplot(fulldat.incl,
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  guides(colour = guide_legend(override.aes = list(alpha = 1,size=2)))
   #+facet_wrap(~phylum, scales="free")
 
 spec.slope.size
@@ -501,7 +502,10 @@ spec.slope.relabu<-ggplot(fulldat.incl,
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  guides(colour = guide_legend(override.aes = list(alpha = 1,size=2)))
+
+
 #+facet_wrap(~phylum, scales="free")
 
 spec.slope.relabu
@@ -516,14 +520,18 @@ spec.lmer.slope.size<-ggplot(fulldat.incl,
   geom_hline(yintercept=0)+
   geom_point(size=2*fulldat.incl$pch2, alpha=.5)+
   theme_bw()+
-  scale_color_manual(values = mycolors[c(4,5,3,8,6)])+  
+  scale_color_manual(values = mycolors[c(5,6,3,9,7)])+  
   ylab("Fixed effect LN size~year")+
   xlab("Median cell size [log µm³]")+ylim(-.25,.2)+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  guides(colour = guide_legend(override.aes = list(alpha = 1,size=3)))+
+  theme(legend.title=element_text(size=12),
+        legend.text=element_text(size=12))
+
 #+facet_wrap(~phylum, scales="free")
 
 spec.lmer.slope.size
@@ -535,14 +543,18 @@ spec.lmer.slope.relabu<-ggplot(fulldat.incl, aes(sqrt.relabu,lmer.slp,
   geom_hline(yintercept=0)+
   geom_point(size=2*fulldat.incl$pch2,alpha=.5)+
   theme_bw()+
-  scale_color_manual(values = mycolors[c(4,5,3,8,6)])+  
-  ylab("Fixed effect LN size~year")+
+  scale_color_manual(values = mycolors[c(5,6,3,9,7)])+  
+  ylab("  ")+
   xlab("Relative abundance [sqrt-transf.]")+ylim(-.25,.2)+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
+  guides(colour = guide_legend(override.aes = list(alpha = 1,size=3)))+
+  theme(legend.title=element_text(size=12),
+        legend.text=element_text(size=12))
+
 #+facet_wrap(~phylum, scales="free")
 
 spec.lmer.slope.relabu
@@ -685,7 +697,7 @@ unique(select$specname)
 selectspec<-ggplot(select, 
                 aes(year,LN.cell.vol, col=class))+
   geom_point(alpha=.1)+
-  scale_color_manual(values = c(mycolors[5],mycolors[6],mycolors[2],mycolors[9],mycolors[7]))+   
+  scale_color_manual(values = c(mycolors[5],mycolors[6],mycolors[3],mycolors[9],mycolors[7]))+   
   geom_smooth(col="blue")+
   #geom_smooth(method="lm",col="red")+
   theme(legend.position="none")+
@@ -697,7 +709,8 @@ selectspec<-ggplot(select,
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  facet_wrap(~specname,scales="free_y")
+  facet_wrap(~specname,scales="free_y")+
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
 
 selectspec
 
@@ -923,8 +936,32 @@ envmod2<-lmer(ln_cwm_abu~temperature+
 
 summary(envmod2)
 
+
+#checking for interannual versus intraannual effects
+#creating mean values per year 
+names(env.cwm.incl)
+
+env.cwm.incl.year <-
+  env.cwm.incl %>%
+  dplyr::group_by(stationID, year, yearID) %>%
+  dplyr::summarize(ln_cwm_abu = mean(ln_cwm_abu),
+                   temperature=mean(temperature,na.rm=TRUE),
+                   TN=mean(log(total.n),na.rm=TRUE),
+                   TP=mean(log(total.p),na.rm=TRUE))
+
+summary(env.cwm.incl.year)
+envmod3<-lmer(ln_cwm_abu~temperature+TN+TP+
+                (1|stationID),
+              data=env.cwm.incl.year)
+
+summary(envmod3)
+
+
+
 #FOR PUBLICATIOn
-tab_model(test3,envmod2, digits =3)
+tab_model(test3,envmod2,envmod3, digits =3)
+
+
 
 #Graphs for CWM
 
@@ -1803,14 +1840,14 @@ cowplot::plot_grid(density.both,raw.incl.final,
 
 dev.off()
 
-tiff(file = "~/P2021_5_pp_size/fig2.tiff", width = 4800, height = 2400, units = "px", res = 400)
+tiff(file = "~/P2021_5_pp_size/fig2.tiff", width = 4800, height = 2000, units = "px", res = 400)
 cowplot::plot_grid(spec.lmer.slope.size,spec.lmer.slope.relabu,
                    ncol=2, nrow=1,
                    align="h",
                    labels = c('A', 'B'))
 dev.off()
 
-tiff(file = "~/P2021_5_pp_size/fig3a.tiff", width = 4800, height = 2400, units = "px", res = 400)
+tiff(file = "~/P2021_5_pp_size/fig3_new.tiff", width = 4800, height = 2400, units = "px", res = 400)
 selectspec
 dev.off()
 
@@ -1914,4 +1951,6 @@ rma(yi=slp,sei=se.slp,data=fulldat.incl)
 
 env_de$year<-year(env_de$date)
 summary(lm(temperature~year, env_de))
-        
+
+summary(lm(log(total.p)~year, env_de))  
+sd(env_de$NP,na.rm=T)
