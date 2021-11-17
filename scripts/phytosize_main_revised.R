@@ -4,7 +4,7 @@
 
 # based on data files by Claus Dürselen
 # script by Helmut Hillebrand started 20210104
-# major iteration 20210215, 20210312, 20210406
+# major iteration 20210215, 20210312, 20210406, 20211116
 
 
 ## initiate WS, libraries
@@ -42,6 +42,7 @@ library(DirichletReg)
 library(Hmisc)
 library(kableExtra)
 library(effects)
+library(lmerTest)
 
 ##################
 ## primary data ##
@@ -301,11 +302,11 @@ summary(x_year)
 x_year<-merge(x_year,dates,by="year")
 names(x_year)
 raw.incl.final<-date.raw+
-  geom_line(data=x_year, aes(x=midyear, y=fit), color="black",size=1)+ 
-  geom_line(data=x_year, aes(x=midyear, y=lower), color="darkgrey",size=1)+ 
-  geom_line(data=x_year, aes(x=midyear, y=upper), color="darkgrey",size=1)
+  geom_line(data=x_year, aes(x=midyear, y=fit), color="black",size=1.5)+ 
+  geom_line(data=x_year, aes(x=midyear, y=lower), color="black",size=1, linetype=2)+ 
+  geom_line(data=x_year, aes(x=midyear, y=upper), color="black",size=1, linetype=2)
 
-
+raw.incl.final
 
 #check for temporal autocorrelation
 
@@ -368,6 +369,7 @@ tab_model(mod.incl.full.SID.YID,mod.incl.mean.SID.YID,digits = 3)
 ## species specific models over time   ####
 ###########################################
 
+#check that correct coefficients are measured
 summary(data)
 test<-data[data$specname=="Brockmanniella_brockmannii",]
 mod.test<-lmer(LN.cell.vol~year+jul2
@@ -376,11 +378,15 @@ mod.test<-lmer(LN.cell.vol~year+jul2
              data=test)
 summary(mod.test)
 coef(summary(mod.test))
+(anova(mod.test))
+
 lmer.int<-coef(summary(mod.test))[1,1]
 lmer.int.se<-coef(summary(mod.test))[1,2]
 lmer.slp<-coef(summary(mod.test))[2,1]
 lmer.se<-coef(summary(mod.test))[2,2]
+lmer.p<-coef(summary(mod.test))[2,5]
 
+# run the analyses
 UIspec<-unique(data$specname)
 
 slope.year<-data.frame()
@@ -404,11 +410,12 @@ for(i in 1:length(UIspec)){
     lmer.int.se<-coef(summary(mod.test))[1,2]
     lmer.slp<-coef(summary(mod.test))[2,1]
     lmer.se<-coef(summary(mod.test))[2,2]
+    lmer.p<-coef(summary(mod.test))[2,5]
     slope.year<-rbind(slope.year,data.frame(temp[1,"specname"],
                                             icpt,slp,se.slp,p,
                                             N,median,
                                             lmer.int, lmer.int.se,
-                                            lmer.slp, lmer.se))
+                                            lmer.slp, lmer.se,lmer.p))
     rm(temp)
   }
   }
@@ -418,7 +425,8 @@ summary(slope.year)
 slope.year<-plyr::rename(slope.year, c("temp.1...specname.."="specname"))
 unique(slope.year$specname)
 
-appendix.tab1<-slope.year[,c(1,3,4,5,6,10,11)]
+names(slope.year)
+appendix.tab1<-slope.year[,c(1,6,10,11,12,3,4,5)]
 names(appendix.tab1)
 appendix.tab1 <- appendix.tab1[order(appendix.tab1$specname),]
 appendix.tab1<-appendix.tab1 %>% mutate_if(is.numeric, round, digits = 4)
@@ -426,24 +434,48 @@ appendix.tab1<-appendix.tab1 %>% mutate_if(is.numeric, round, digits = 4)
 #FOR PUBLICATION
 kbl(appendix.tab1, caption = "") %>%
   kable_styling(bootstrap_options = "striped",
-                full_width = F) %>%
-  add_header_above(c(" ", "Linear Model" = 4, "Mixed Model" = 2))
+                full_width = F) 
 
-hist(slope.year$slp)
 
+
+#based on reviewer comments: proportions
+neg.slope.lmer<-length(appendix.tab1$N[appendix.tab1$lmer.slp<0])
+neg.sig.slope.lmer<-length(appendix.tab1$N[appendix.tab1$lmer.slp<0&
+                                         appendix.tab1$lmer.p<0.1])
+unique(appendix.tab1$specname[appendix.tab1$lmer.slp<0&
+                         appendix.tab1$lmer.p<0.1])
+neg.slope.ols<-length(appendix.tab1$N[appendix.tab1$slp<0])
+neg.sig.slope.ols<-length(appendix.tab1$N[appendix.tab1$slp<0&
+                                             appendix.tab1$p<0.1])
+pos.slope.lmer<-length(appendix.tab1$N[appendix.tab1$lmer.slp>0])
+pos.sig.slope.lmer<-length(appendix.tab1$N[appendix.tab1$lmer.slp>0&
+                                             appendix.tab1$lmer.p<0.1])
+pos.sig.slope.ols<-length(appendix.tab1$N[appendix.tab1$slp>0&
+                                             appendix.tab1$p<0.1])
+unique(appendix.tab1$specname[appendix.tab1$lmer.slp>0&
+                                appendix.tab1$lmer.p<0.1])
+unique(appendix.tab1$specname[appendix.tab1$slp>0&
+                                appendix.tab1$p<0.1])
+
+
+
+#merge slopes with species info
 unique(specinfo.incl$specname)
 fulldat.incl<-merge(specinfo.incl,slope.year, by="specname",all=F)
-
 names(fulldat.incl)
+
+#create log median size
 fulldat.incl$median.size<-log(fulldat.incl$median)
+
+#create a color gradient for significance
 fulldat.incl$col<-NA
 fulldat.incl$col[fulldat.incl$p>.05]<-.2
 fulldat.incl$col[fulldat.incl$p<.05]<-.6
 summary(fulldat.incl)
 
+#create two more gradients for plotting
 fulldat.incl$pch1<-log(abs(fulldat.incl$slp/fulldat.incl$se.slp))+1
 fulldat.incl$pch2<-log(abs(fulldat.incl$lmer.slp/fulldat.incl$lmer.se))+1
-
 unique(fulldat.incl$class)
 fulldat.incl$color<-NA
 fulldat.incl$color[fulldat.incl$class=="Bacillariophyceae"]<-mycolors[4]
@@ -459,66 +491,21 @@ fulldat.incl$color[fulldat.incl$class=="Chlorophyceae"]<-mycolors[2]
 fulldat.incl$color[fulldat.incl$class=="Coccolithophyceae"]<-mycolors[12]
 fulldat.incl$color[fulldat.incl$class=="Katablepharidophyceae"]<-mycolors[10]
 
+#quick quality check
 names(fulldat.incl)
-pairs.panels(fulldat.incl[,c(11,19:21,18,32,23,30)],method="spearman")
+pairs.panels(fulldat.incl[,c(10,18:20,17,22,29)],method="spearman")
 plot(slp~lmer.slp,fulldat.incl)
 hist(fulldat.incl$lmer.slp)
 hist(fulldat.incl$slp)
-
 summary(fulldat.incl)
 
-spec.slope.size<-ggplot(fulldat.incl, 
-                   aes(median.size,slp, 
-                       col=class))+
-  geom_hline(yintercept=0)+
-  geom_point(alpha=fulldat.incl$col,
-             size=fulldat.incl$pch1)+
-  theme_bw()+
-  ylab("Slope LN size~time")+
-  xlab("Median cell size [log µm³]")+
-  scale_color_manual(values = mycolors[c(4,5,3,8,6)])+  
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  guides(colour = guide_legend(override.aes = list(alpha = 1,size=2)))
-  #+facet_wrap(~phylum, scales="free")
 
-spec.slope.size
-
-
-spec.slope.relabu<-ggplot(fulldat.incl, 
-                        aes(sqrt.relabu,slp, 
-                            col=class))+
-  geom_hline(yintercept=0)+
-  geom_point(alpha=fulldat.incl$col,
-             size=fulldat.incl$pch1)+
-  theme_bw()+
-  ylab("Slope LN size~time")+ylim(-.25,.2)+
-  xlab("Relative abundance [sqrt-transf.]")+
-  scale_color_manual(values = mycolors[c(4,5,3,8,6)])+   
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  guides(colour = guide_legend(override.aes = list(alpha = 1,size=2)))
-
-
-#+facet_wrap(~phylum, scales="free")
-
-spec.slope.relabu
-
-
-
-
-
+#graphical display of the specific slopes
 spec.lmer.slope.size<-ggplot(fulldat.incl, 
                                aes(median.size,lmer.slp, 
                                    col=class))+
   geom_hline(yintercept=0)+
-  geom_point(size=2*fulldat.incl$pch2, alpha=.5)+
+  geom_point(size=2*fulldat.incl$pch2, alpha=.3,stroke = 1.5)+
   theme_bw()+
   scale_color_manual(values = mycolors[c(5,6,3,9,7)])+  
   ylab("Fixed effect LN size~year")+
@@ -532,7 +519,7 @@ spec.lmer.slope.size<-ggplot(fulldat.incl,
   theme(legend.title=element_text(size=12),
         legend.text=element_text(size=12))
 
-#+facet_wrap(~phylum, scales="free")
+
 
 spec.lmer.slope.size
 
@@ -541,7 +528,7 @@ spec.lmer.slope.size
 spec.lmer.slope.relabu<-ggplot(fulldat.incl, aes(sqrt.relabu,lmer.slp, 
                        col=class))+
   geom_hline(yintercept=0)+
-  geom_point(size=2*fulldat.incl$pch2,alpha=.5)+
+  geom_point(size=2*fulldat.incl$pch2,alpha=.3,stroke = 1.5)+
   theme_bw()+
   scale_color_manual(values = mycolors[c(5,6,3,9,7)])+  
   ylab("  ")+
@@ -555,36 +542,15 @@ spec.lmer.slope.relabu<-ggplot(fulldat.incl, aes(sqrt.relabu,lmer.slp,
   theme(legend.title=element_text(size=12),
         legend.text=element_text(size=12))
 
-#+facet_wrap(~phylum, scales="free")
+
 
 spec.lmer.slope.relabu
 
-names(fulldat.incl)
+#correlation tests
 cor.test(fulldat.incl$sqrt.relabu,fulldat.incl$lmer.slp)
 cor.test(fulldat.incl$median.size,fulldat.incl$lmer.slp)
 
-#for identification redo graph with text labels
-spec.lmer.slope.relabu.show<-ggplot(fulldat.incl, aes(sqrt.relabu,lmer.slp, 
-                                                 col=class))+
-  geom_hline(yintercept=0)+
-  geom_point(size=2*fulldat.incl$pch2,alpha=.5)+
-  theme_bw()+
-  scale_color_manual(values = mycolors[c(4,5,3,8,6)])+  
-  ylab("Fixed effect LN size~year")+
-  xlab("Relative abundance [sqrt-transf.]")+ylim(-.25,.2)+
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  geom_label_repel(data=fulldat.incl[fulldat.incl$lmer.slp>0,],aes(sqrt.relabu,lmer.slp,label=specname),col="orange") 
-#+facet_wrap(~phylum, scales="free")
-
-spec.lmer.slope.relabu.show
-
-
-
-## Violin & density plots
+##violin & density plots
 
 names(data)
 violin.raw<-ggplot(data, 
@@ -651,10 +617,9 @@ allspec
 
 
 #select some species
-select<-data2[data2$sqrt.relabu>.05,]
-select<-select[select$N>100,]
+select<-data2[data2$sqrt.relabu>.05,] #at least 5% abundance when present
+select<-select[select$N>100,] #at least 100 observations
 select<-select[which(abs(select$sqrt.occ) > .2 | select$phylum!="Bacillariophyta") , ]
-#select<-select[which(abs(select$lmer.slp) > .05 | select$phylum!="Bacillariophyta") , ]
 select<-select[select$specname!="Asteroplanus_karianus",]
 select<-select[select$specname!="Bacillaria_paxillifera",]
 select<-select[select$specname!="Bacteriastrum_hyalinum",]
@@ -755,6 +720,7 @@ weights.incl$lnsize<-log(weights.incl$mean.size)
 
 summary(weights.incl)
 
+#create sample-based weighted means and variances
 pp.cwm.incl <-
   weights.incl %>%
   dplyr::group_by(stationID,date) %>%
@@ -783,13 +749,17 @@ pairs.panels((pp.cwm.incl[,c(3:13)]),method="spearman")
 summary(pp.cwm.incl)
 names(pp.cwm.incl)
 
+#load environmental data
+
 Env_data <- read_csv("~/R/InterReg-project/C_Chl_ratio/MARISCO_pp_wadden_env.csv")
 summary (Env_data)
-#rename columns
+
+#rename columns and merge
 Env_data$date<-dmy(Env_data$date)
 Env_data$stationID<-(Env_data$StationID)
 env.cwm.incl<-merge(pp.cwm.incl,Env_data, by=c("stationID","date"))
 
+# time series of CWM
 size.cwm<-ggplot(pp.cwm.incl, 
                     aes(date,ln_cwm_abu))+
   geom_jitter(alpha=.1)+
@@ -808,12 +778,10 @@ size.cwm<-ggplot(pp.cwm.incl,
 size.cwm
 
 
-
-
+# same as violin plot
 violin.cwm<-ggplot(pp.cwm.incl, 
                  aes(as.factor(year),ln_cwm_abu))+
   geom_violin(alpha=.21)+
-  #geom_smooth()+
   theme_bw()+
   ylab("Cell size [LN µm³]")+
   xlab("year")+
@@ -822,11 +790,7 @@ violin.cwm<-ggplot(pp.cwm.incl,
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())#+
-  #facet_wrap(~stat)
-
 violin.cwm
-
-
 
 # add the seasonal julian variable again
 pp.cwm.incl$jul2<-pp.cwm.incl$julian
@@ -835,42 +799,11 @@ env.cwm.incl$jul2<-env.cwm.incl$julian
 env.cwm.incl$jul2[env.cwm.incl$jul2>183]<-365-env.cwm.incl$julian[env.cwm.incl$jul2>183]
 
 
-#check different options of CWM
-test1<-lmer(ln_cwm_abu~year+jul2
-            +(1|stationID)
-            +(1|yearID),
-            data=pp.cwm.incl[pp.cwm.incl$year>2006,])
-
-test2<-lmer(ln_cwm_abu~year+jul2
-            +(1|stationID),
-            data=pp.cwm.incl)
-
+#statistical analyis of CWM over time
 test3<-lmer(ln_cwm_abu~year+jul2
             +(1|stationID)
             +(1|yearID),
             data=pp.cwm.incl)
-
-
-#check different options of CWM
-
-test.abu<-lmer(log(cwm_abu)~year+jul2
-            +(1|stationID)
-            +(1|yearID),
-            data=pp.cwm.incl)
-test.ln.abu<-lmer(ln_cwm_abu~year+jul2
-            +(1|stationID)
-            +(1|yearID),
-            data=pp.cwm.incl)
-test.vol<-lmer(log(cwm_vol)~year+jul2
-               +(1|stationID)
-               +(1|yearID),
-               data=pp.cwm.incl)
-test.ln.vol<-lmer(ln_cwm_vol~year+jul2
-                  +(1|stationID)
-                  +(1|yearID),
-                  data=pp.cwm.incl)
-
-tab_model(test.abu,test.ln.abu,test.vol,test.ln.vol)
 summary(test3)
 
 tab_model(test3,digits=3)
@@ -882,13 +815,10 @@ summary(x_cwm.year)
 x_cwm.year<-merge(x_cwm.year,dates,by="year")
 names(x_cwm.year)
 
-
 # final figures for CWM
 size.cwm.incl<-ggplot(pp.cwm.incl, 
                       aes(date,ln_cwm_abu,col=stationID))+
   geom_point(alpha=.2)+
-  #geom_violin(alpha=.21)+
-  #geom_smooth()+
   theme_bw()+
   theme(legend.position = "none")+
   ylab("CWM cell size [LN µm³]")+
@@ -903,27 +833,15 @@ size.cwm.incl
 
 cwm.incl.final<-size.cwm.incl+
   geom_line(data=x_cwm.year, aes(x=midyear, y=fit), color="black",size=1)+ 
-  geom_line(data=x_cwm.year, aes(x=midyear, y=lower), color="darkgrey",size=1)+ 
-  geom_line(data=x_cwm.year, aes(x=midyear, y=upper), color="darkgrey",size=1)
+  geom_line(data=x_cwm.year, aes(x=midyear, y=lower), color="black",size=1, linetype=2)+ 
+  geom_line(data=x_cwm.year, aes(x=midyear, y=upper), color="black",size=1, linetype=2)
 
 cwm.incl.final
 
 
 ## model with environmental variables
-names(env.cwm.incl)
 
-# without year ID
-envmod1<-lmer(ln_cwm_abu~temperature+
-                log(total.n)+
-                log(suspended.particulates)+
-                log(total.p)+
-                log(silicon)+
-                pH+
-                salinity+
-                (1|stationID),
-              data=env.cwm.incl)
-
-#with year ID
+#sample data with year ID
 envmod2<-lmer(ln_cwm_abu~temperature+
                 log(total.n)+
                 log(suspended.particulates)+
@@ -937,10 +855,8 @@ envmod2<-lmer(ln_cwm_abu~temperature+
 summary(envmod2)
 
 
-#checking for interannual versus intraannual effects
+#annual data
 #creating mean values per year 
-names(env.cwm.incl)
-
 env.cwm.incl.year <-
   env.cwm.incl %>%
   dplyr::group_by(stationID, year, yearID) %>%
@@ -950,10 +866,11 @@ env.cwm.incl.year <-
                    TP=mean(log(total.p),na.rm=TRUE))
 
 summary(env.cwm.incl.year)
+
+#as only 44 observations left, yearID is not used as random term
 envmod3<-lmer(ln_cwm_abu~temperature+TN+TP+
                 (1|stationID),
               data=env.cwm.incl.year)
-
 summary(envmod3)
 
 
@@ -964,46 +881,6 @@ tab_model(test3,envmod2,envmod3, digits =3)
 
 
 #Graphs for CWM
-
-obj<-plot_model(test3, type = "pred", pred.type="re",terms = c("year"),title="")
-obj
-obj2<-plot_model(envmod2, type = "pred", pred.type="re",terms = c("temperature"),title="")
-obj2
-obj3<-plot_model(envmod2, type = "pred", pred.type="re",terms = c("total.p"),title="")
-obj3
-
-mod.fig3<-obj+theme_bw()+
-  ylab("CWM cell size [LN µm³]")+
-  xlab("Year")+
-  geom_jitter(data=pp.cwm.incl,aes(x=year,y=ln_cwm_abu,alpha=jul2-.8),col="darkgreen")+
-  theme(legend.position = "none")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-mod.fig3
-
-
-mod.fig4<-obj2+theme_bw()+
-  ylab("CWM cell size [LN µm³]")+
-  xlab("Temperature [°C]")+
-  geom_jitter(data=env.cwm.incl,aes(x=temperature,y=ln_cwm_abu,alpha=jul2),col="blue")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(legend.position = "none")+
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-mod.fig4
-
-
-
-#alternative
 effects_cwm.temp <- effects::effect(term= "temperature", mod= envmod2)
 summary(effects_cwm.temp)
 x_cwm.temp<-as.data.frame(effects_cwm.temp)
@@ -1016,8 +893,8 @@ temp.raw.incl<-ggplot(data=env.cwm.incl,aes(x=temperature,y=ln_cwm_abu))+
   xlab("Temperature [°C]")+
   geom_point(aes(alpha=jul2),col="darkred")+
   geom_line(data=x_cwm.temp, aes(x=temperature, y=fit), color="black",size=1)+ 
-  geom_line(data=x_cwm.temp, aes(x=temperature, y=lower), color="darkgrey",size=1)+ 
-  geom_line(data=x_cwm.temp, aes(x=temperature, y=upper), color="darkgrey",size=1)+
+  geom_line(data=x_cwm.temp, aes(x=temperature, y=lower), color="black",size=1, linetype=2)+ 
+  geom_line(data=x_cwm.temp, aes(x=temperature, y=upper), color="black",size=1, linetype=2)+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(legend.position = "none")+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
@@ -1045,8 +922,8 @@ totaln.raw.incl<-ggplot(data=env.cwm.incl,aes(x=log(total.n),y=ln_cwm_abu))+
   xlab("Total N [LN µM]")+
   geom_point(aes(alpha=jul2),col="darkblue")+
   geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=fit), color="black",size=1)+ 
-  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=lower), color="darkgrey",size=1)+ 
-  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=upper), color="darkgrey",size=1)+
+  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=lower), color="black",size=1, linetype=2)+ 
+  geom_line(data=x_cwm.totaln, aes(x=log(total.n), y=upper), color="black",size=1, linetype=2)+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(legend.position = "none")+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
@@ -1071,8 +948,8 @@ totalp.raw.incl<-ggplot(data=env.cwm.incl,aes(x=log(total.p),y=ln_cwm_abu))+
   xlab("Total P [LN µM]")+
   geom_point(aes(alpha=jul2),col="darkgreen")+
   geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=fit), color="black",size=1)+ 
-  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=lower), color="darkgrey",size=1)+ 
-  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=upper), color="darkgrey",size=1)+
+  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=lower), color="black",size=1, linetype=2)+ 
+  geom_line(data=x_cwm.totalp, aes(x=log(total.p), y=upper), color="black",size=1, linetype=2)+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(legend.position = "none")+
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
@@ -1154,7 +1031,7 @@ vol.all$no<-NULL
 plot(LN.cell.vol~date,vol.all)
 plot(LN.cell.vol~julian,vol.all)
 
-## statistics for subset 2 (species level)
+## statistics for subset 2 (all texonomic identification levels)
 data.all <- vol.all
 
 
@@ -1184,23 +1061,6 @@ mod.all.full.SID.YID<-lmer(LN.cell.vol~year+jul2
                             data=data.all)
 summary(mod.all.full.SID.YID)
 tab_model(mod.all.full.SID.YID, digits=4)
-
-plot_model(mod.all.full.SID.YID, type = "pred", terms = c("year","jul2"))
-plot.all.full.SID.YID<-plot_model(mod.all.full.SID.YID, type = "pred", terms = c("year"),title="")
-plot.all.full.SID.YID
-fig.all.full.SID.YID<-plot.all.full.SID.YID+theme_bw()+
-  ylab("Cell size [LN µm³]")+
-  xlab("Year")+
-  theme(legend.position = "none")+
-  geom_jitter(data=data.all,aes(x=year,y=LN.cell.vol,col=class),size=.1,alpha=.1)+
-  scale_color_manual(values = data.all$color) +
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-fig.all.full.SID.YID
 
 
 #redo analyses with mean cell volumes per sample
@@ -1324,8 +1184,7 @@ violin.cwm<-ggplot(pp.cwm.all,
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
   theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
   theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())#+
-#facet_wrap(~stat)
+  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
 
 violin.cwm
 
@@ -1410,61 +1269,9 @@ tab_model(test3.all,envmod2.all, digits =3)
 tab_model(test3,test3.all,
           envmod2, envmod2.all, digits =3)
 
+## Further analyses based on reviewer comments
 
-
-
-
-
-
-
-
-
-obj<-plot_model(test3, type = "pred", pred.type="re",terms = c("year"),title="")
-obj
-obj2<-plot_model(envmod2, type = "pred", pred.type="re",terms = c("temperature"),title="")
-obj2
-obj3<-plot_model(envmod2, type = "pred", pred.type="re",terms = c("total.p"),title="")
-obj3
-
-
-
-
-
-mod.fig3<-obj+theme_bw()+
-  ylab("CWM cell size [LN µm³]")+
-  xlab("Year")+
-  geom_point(data=pp.cwm.all,aes(x=year,y=ln_cwm_abu,alpha=jul2-.8,col=stationID))+
-  theme(legend.position = "none")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-mod.fig3
-
-
-mod.fig4<-obj2+theme_bw()+
-  ylab("CWM cell size [LN µm³]")+
-  xlab("Temperature [°C]")+
-  geom_jitter(data=env.cwm.all,aes(x=temperature,y=ln_cwm_abu,alpha=jul2),col="blue")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(legend.position = "none")+
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-mod.fig4
-
-
-
-
-
-
-#check how much biovolume is in the not.to.species
+#check how much biovolume is in the not.to.species fraction
 names(stationinfo.all)
 names(stationinfo.incl)
 
@@ -1473,7 +1280,8 @@ prop$p<-prop$biovol.incl/prop$biovol.all
 hist(prop$p)
 summary(prop)
 
-names(Env_data)
+# plot the environmental data
+# reduce data set to the German stations analyzed here
 Env_data$Co<-NA
 Env_data$Co<-"NL"
 Env_data$Co[Env_data$stationID=="Bork_W_1"]<-"DE"
@@ -1481,209 +1289,20 @@ Env_data$Co[Env_data$stationID=="Nney_W_2"]<-"DE"
 Env_data$Co[Env_data$stationID=="JaBu_W_1"]<-"DE"
 Env_data$Co[Env_data$stationID=="WeMu_W_1"]<-"DE"
 Env_data$Co<-as.factor(Env_data$Co)
-summary(Env_data)
-
-
-Env_data2<-Env_data
-Env_data2$excl<-NA
-Env_data2$excl[Env_data2$stationID=="BOCHTVWTM"]<-"out"
-Env_data2$excl[Env_data2$stationID=="TERSLG100"]<-"out"
-Env_data2$excl[Env_data2$stationID=="TERSLG135"]<-"out"
-Env_data2$excl[Env_data2$stationID=="TERSLG175"]<-"out"
-Env_data2$excl[Env_data2$stationID=="TERSLG235"]<-"out"
-Env_data2$excl[Env_data2$stationID=="TERSLG50"]<-"out"
-Env_data2$excl[Env_data2$stationID=="ZUIDOLWOT"]<-"out"
-Env_data2<-Env_data2[is.na(Env_data2$excl),]
-
-
-
-mycolors3<-colorRampPalette(brewer.pal(8, "Spectral"))(20)
-plot(1:20,col=mycolors3,pch=16, cex=2)
-unique(Env_data2$stationID)
-site.colors <- c(Bork_W_1=mycolors3[1], 
-                  Nney_W_2=mycolors3[5], 
-                  JaBu_W_1=mycolors3[6], 
-                  WeMu_W_1=mycolors3[3], 
-                  BOOMKDP=mycolors3[8], 
-                  DANTZGT=mycolors3[12], 
-                  DOOVBWT=mycolors3[11], 
-                  GROOTGND=mycolors3[13], 
-                  HUIBGOT=mycolors3[14], 
-                  MARSDND=mycolors3[15], 
-                  ROTTMPT3=mycolors3[16], 
-                  ROTTMPT50=mycolors3[17], 
-                  ROTTMPT70=mycolors3[18],
-                  TERSLG4=mycolors3[19],
-                  TERSLG10=mycolors3[20])
-
-
-
-temperature<-ggplot(Env_data2, 
-                     aes(date,temperature,col=Co,shape=Co))+
-  geom_point(alpha=.1)+
-  #geom_smooth(se=FALSE)+
-  theme_bw()+
-  xlab("Time")+
-  ylab("Temperature°C")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-temperature
-
-
-TN<-ggplot(Env_data2, 
-                    aes(date,log(total.n),col=stationID))+
-  geom_point(alpha=.2)+
-  geom_smooth(se=FALSE)+
-  theme_bw()+
-  xlab("Time")+
-  ylab("LN Total N (µM)")+ylim(2,7)+
-  scale_color_manual(values = site.colors) +
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  theme(legend.position="none")
-
-TN
-
-
-TP<-ggplot(Env_data2, 
-           aes(date,log(total.p),col=stationID))+
-  geom_point(alpha=.2)+
-  geom_smooth(se=FALSE)+
-  theme_bw()+
-  scale_color_manual(values = site.colors) +
-  xlab("Time")+
-  ylab("LN Total P (µM)")+ylim(-2,3)+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  theme(legend.position="none")
-
-TP
-
-Env_data2$NP<-Env_data2$total.n/Env_data2$total.p
-
-
-NP<-ggplot(Env_data2, 
-           aes(date,log(NP),col=stationID))+
-  geom_point(alpha=.2)+
-  geom_smooth(se=FALSE)+
-  theme_bw()+
-  scale_color_manual(values = site.colors) +
-  geom_hline(yintercept=log(16),col="black",size=1)+
-  geom_hline(yintercept=log(22),col="darkgrey",size=1)+
-  xlab("Time")+
-  ylab("LN molar N:P")+ylim(1,5)+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())+
-  theme(legend.position = "none")
-
-NP
-
-
-
-salinity<-ggplot(Env_data, 
-           aes(date,salinity,col=Co,shape=Co))+
-  geom_point(alpha=.1)+
-  #geom_smooth(se=FALSE)+
-  theme_bw()+
-  xlab("Time")+
-  ylab("Salinity [PSU]")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-salinity
-
-
-
-pH<-ggplot(Env_data, 
-                 aes(date,pH,col=Co,shape=Co))+
-  geom_point(alpha=.1)+
-  #geom_smooth(se=FALSE)+
-  theme_bw()+
-  xlab("Time")+
-  ylab("pH")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-pH
-
-
-silicon<-ggplot(Env_data, 
-            aes(date,log(silicon),col=Co,shape=Co))+
-  geom_point(alpha=.1)+
-  #geom_smooth(se=FALSE)+
-  theme_bw()+
-  xlab("Time")+
-  ylab("log Si [µM]")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-silicon
-
-spm<-ggplot(Env_data, 
-                 aes(date,log(suspended.particulates),col=Co,shape=Co))+
-  geom_point(alpha=.1)+
-  #geom_smooth(se=FALSE)+
-  theme_bw()+
-  xlab("Time")+
-  ylab("SPM")+
-  theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
-  theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
-  theme(axis.ticks=element_line(colour="black",size=1),axis.ticks.length=unit(0.3,"cm"))+
-  theme(panel.border=element_rect(colour="black",size=1.3))+
-  theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank())
-
-spm
-
-
-
-
-
-
-xyplot(temperature~date|stationID,Env_data)
 Env_data$NP<-Env_data$total.n/Env_data$total.p
-xyplot(log(NP)~date|stationID,Env_data)
 
 
+# select German data
 env_de<-Env_data[Env_data$Co=="DE",]
 
 temp.de<-ggplot(env_de, 
                     aes(date,temperature))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
   xlab("Time")+
-  ylab("Temperature°C")+
+  ylab("Temperature [°C]")+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -1696,12 +1315,12 @@ temp.de
 
 TN.de<-ggplot(env_de, 
            aes(date,log(total.n)))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
   xlab("Time")+
-  ylab("LN Total N (µM)")+
+  ylab("LN Total N [µM]")+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -1715,12 +1334,12 @@ TN.de
 
 TP.de<-ggplot(env_de, 
            aes(date,log(total.p)))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
   xlab("Time")+
-  ylab("LN Total P (µM)")+
+  ylab("LN Total P [µM]")+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -1734,14 +1353,14 @@ TP.de
 
 NP.de<-ggplot(env_de, 
            aes(date,log(NP)))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
   geom_hline(yintercept=log(16),col="black")+
   geom_hline(yintercept=log(22),col="grey")+
   xlab("Time")+
-  ylab("LN molar N:P")+
+  ylab("N:P [LN molar ratio]")+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -1756,8 +1375,8 @@ NP.de
 
 salinity.de<-ggplot(env_de, 
                  aes(date,salinity))+
-  geom_point(aes(col=stationID),alpha=.1)+
-  geom_smooth(se=FALSE)+
+  geom_point(aes(col=stationID),alpha=.5)+
+  #geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
   xlab("Time")+
@@ -1776,7 +1395,7 @@ salinity.de
 
 pH.de<-ggplot(env_de, 
            aes(date,pH))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme_bw()+
   xlab("Time")+
@@ -1794,7 +1413,7 @@ pH.de
 
 silicon.de<-ggplot(env_de, 
                 aes(date,log(silicon)))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
@@ -1812,12 +1431,12 @@ silicon.de
 
 spm.de<-ggplot(env_de, 
             aes(date,log(suspended.particulates)))+
-  geom_point(aes(col=stationID),alpha=.1)+
+  geom_point(aes(col=stationID),alpha=.5)+
   geom_smooth(se=FALSE)+
   theme(legend.position = "none")+
   theme_bw()+
   xlab("Time")+
-  ylab("SPM")+
+  ylab("SPM [mg m-3]")+
   theme(plot.margin = unit(c(0, 2, 0, 0), "cm"))+ #top, right, bottom, left
   theme(axis.title.y=element_text(size=16, face="plain", colour="black",vjust=0.3),axis.text.y=element_text(size=12,face="bold",colour="black"))+
   theme(axis.title.x=element_text(size=16,face="plain",colour="black"),axis.text.x=element_text(size=12,face="bold",colour="black"))+
@@ -1873,16 +1492,8 @@ cowplot::plot_grid(temp.de,salinity.de,pH.de,spm.de,
 dev.off()
 
 
-tiff(file = "NPNLWKN.tiff", width = 3600, height = 3200, units = "px", res = 400)
-cowplot::plot_grid(TN,TP,NP,
-                   ncol=2, nrow=2,
-                   align="hv",
-                   labels = c('A', 'B','C'))
 
-dev.off()
-
-
-### check some sensitivity test
+### some more sensitivity test
 
 # full model species level with and without year ID
 tab_model(mod.incl.full.SID.YID, mod.incl.full.SID, digits=4)
@@ -1896,47 +1507,10 @@ tab_model(mod.incl.full.SID.YID, mod.incl.full.SID,
 
 # full model species level and all
 tab_model(mod.incl.full.SID.YID, mod.all.mean.SID.YID, digits=4)
-
-
-
 tab_model(mod.incl.no2006.SID.YID, digits=4)
 
 
 
-names(include)
-stationinfo.map<- ddply(include, .(stationID), summarise, 
-                         n.samp= length(unique(USI)),
-                         min.y= min(year, na.rm = T),
-                         max.y= max(year, na.rm = T))
-summary(stationinfo.map)
-latlong <- read_delim("~/Large Data Sets/monitoring_data_raw/stations_nlwkn_lat_long.csv", 
-                                      ";", escape_double = FALSE, trim_ws = TRUE)
-summary(latlong)
-unique(latlong$stationID)
-unique(stationinfo.map$stationID)
-
-latlong<-merge(latlong,stationinfo.map,by="stationID",all=TRUE)
-latlong$pch<-as.factor(latlong$pch)
-min(latlong$Latitude)
-max(latlong$Latitude)
-max(latlong$Longitude)
-min(latlong$Longitude)
-
-german <- map_data("worldHires")
-map<-ggplot() + geom_polygon(data = german, aes(x=long, y = lat, group = group)) + 
-  coord_fixed(xlim = c(6.5, 8.5),  ylim = c(53, 54), ratio = 1.3)
-map
-
-library(sp)
-library(ggrepel)
-gadm <- readRDS("~/Large Data Sets/monitoring_data_raw/gadm36_DEU_0_sp.rds")
-map<-ggplot() + geom_polygon(data = gadm, aes(x=long, y = lat, group = group)) + 
-  coord_fixed(xlim = c(6.5, 9),  ylim = c(53.25, 54), ratio = 1.3)+
-  geom_point(data=latlong[latlong$pch=="env",], aes(Longitude, Latitude), shape=16, col="red",size=5)+
-  geom_point(data=latlong[latlong$pch!="env",], aes(Longitude, Latitude), shape=17, col="orange",size=3)
-#geom_text_repel(data=latlong,aes(Longitude, Latitude,label=nr),col="orange") 
-  
-map
 
 
 #meta-amalysis
@@ -1952,5 +1526,12 @@ rma(yi=slp,sei=se.slp,data=fulldat.incl)
 env_de$year<-year(env_de$date)
 summary(lm(temperature~year, env_de))
 
-summary(lm(log(total.p)~year, env_de))  
-sd(env_de$NP,na.rm=T)
+
+
+#reviewer request to investigate pattern at e^12
+date.raw+geom_hline(yintercept=12)+geom_hline(yintercept=11)
+names(data)
+check<-data[data$LN.cell.vol<12,]
+check<-check[check$LN.cell.vol>11,]
+
+summary(check)
