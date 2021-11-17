@@ -11,6 +11,7 @@
 rm(list=ls())
 graphics.off()
 setwd("data/")
+
 library(readr)
 library(plyr)
 library(tidyverse)
@@ -751,7 +752,7 @@ names(pp.cwm.incl)
 
 #load environmental data
 
-Env_data <- read_csv("~/R/InterReg-project/C_Chl_ratio/MARISCO_pp_wadden_env.csv")
+Env_data <- read_csv("MARISCO_pp_wadden_env.csv")
 summary (Env_data)
 
 #rename columns and merge

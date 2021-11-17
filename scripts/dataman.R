@@ -18,7 +18,7 @@ library(lattice)
 
 #& I replaced n.g. for not measured dimensions by NA
 
-data<- read.csv("~/Large Data Sets/NLWKN/aquaecology/summary.csv", sep=";",dec=".")
+data<- read.csv("summary.csv", sep=";",dec=".")
 names(data)
 
 #get rid of some variables not consistently reported
@@ -2623,7 +2623,7 @@ summary(data[sel1,c("DimA","DimB","DimC")])
 data$equation[sel1]<- "cylinder"
 
 
-#IBI'
+#Creating the final file
 
 summary(as.factor(data$equation))
 source('~/R/phytosize/scripts/biovol.R')
