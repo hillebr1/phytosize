@@ -61,7 +61,7 @@ The resulting dataset (ppall_corr.csv) is then analyzed as coded in "phytosize_m
 
 "UTSI": unique taxon sample identifier (merges USI and UTI)
 
-"specname.unique": unique species differ, differs from specname by giving numbers to cells 
+"specname.unique": unique species differ, differs from specname by giving numbers to differentiated taxa that weren't identified to species (e.g. unidentified flagellate 1, unidentified flagellate 2)
 
 "mean.size": mean of all cell sizes calculated for a certain species in a certain sample
 
@@ -71,3 +71,20 @@ The resulting dataset (ppall_corr.csv) is then analyzed as coded in "phytosize_m
 
 ### Environmental data
 
+"StationID","date": as above
+
+"temperature": water temperature in °C
+
+"pH": pH
+
+"salinity": salinity in PSU (practical salinity units)
+
+"total.p": Total phosphorus concentration in µmol per litre
+
+"silicon": Dissolved silicate concentration in µmol per litre
+
+"total.n": Total nitrogen concentration in µmol per litre
+
+"secchi": Secchi depth in meter
+
+"suspended.particulates" weight of suspended particulate matter in mg per litre
