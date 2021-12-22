@@ -1282,19 +1282,11 @@ hist(prop$p)
 summary(prop)
 
 # plot the environmental data
-# reduce data set to the German stations analyzed here
-Env_data$Co<-NA
-Env_data$Co<-"NL"
-Env_data$Co[Env_data$stationID=="Bork_W_1"]<-"DE"
-Env_data$Co[Env_data$stationID=="Nney_W_2"]<-"DE"
-Env_data$Co[Env_data$stationID=="JaBu_W_1"]<-"DE"
-Env_data$Co[Env_data$stationID=="WeMu_W_1"]<-"DE"
-Env_data$Co<-as.factor(Env_data$Co)
+# Create NP molar ratio
+
 Env_data$NP<-Env_data$total.n/Env_data$total.p
 
-
-# select German data
-env_de<-Env_data[Env_data$Co=="DE",]
+env_de<-Env_data
 
 temp.de<-ggplot(env_de, 
                     aes(date,temperature))+

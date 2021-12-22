@@ -1,12 +1,12 @@
 # Phytosize
 
-This repository contains all data and code for the analyis of phytoplankton cell size in the German Wadden Sea, which is associated to the article "Temporal declines in Wadden Sea phytoplankton cell volumes observed within and across species" by Helmut Hillebrand, Josie Antonucci Di Carvalho, Jan-Claas Dajka, Claus-Dieter Dürselen, Onur Kerimoglu, Lucie Kuczynski, Lena Rönn, and Alexey Ryabov. When using the data or code, please cite the DOI of this repository as well as the original manuscript. 
+This repository contains all data and code for the analyis of phytoplankton cell size in the German Wadden Sea, which is associated to the article "Temporal declines in Wadden Sea phytoplankton cell volumes observed within and across species" by Helmut Hillebrand, Josie Antonucci Di Carvalho, Jan-Claas Dajka, Claus-Dieter Dürselen, Onur Kerimoglu, Lucie Kuczynski, Lena Rönn, and Alexey Ryabov in Limnology and Oceanography (DOI: 10.1002/LNO.12005). When using the data or code, please cite the DOI of this repository as well as the original manuscript. 
 
 ## Overall setup
 
-The phytoplankton data used for the analyses are generated from the original counts which are collated in a single dataset (summary.csv). The script "dataman.R" goes through all steps of data homogenization, including deletion of heterotrophic and parasitic species. The script sources the "biovol.R" script that provides a harmonized calculation of the cell volume of each specimen measured. 
+The phytoplankton data used for the analyses are generated from the original counts which are collated in a single dataset (summary.csv) keeping the original format. The script "dataman.R" goes through all steps of data homogenization, including deletion of heterotrophic and parasitic species, alignment of phylogeny and different volumetric approaches across time, association to geometric forms. The script sources the "biovol.R" script that provides a harmonized calculation of the cell volume of each specimen measured. 
 
-The resulting dataset (ppall_corr.csv) is then analyzed as coded in "phytosize_main_revised.R". To plot dates correctly, we use (dates.csv) and for merging the phytoplankton data with associated environmental variables, we use a larger set of environmental data from a monitoring integration project (MARISCO_pp_wadden_env.csv).
+The analysis for the paper start with the resulting dataset from this harmonization (ppall_corr.csv), which then is analyzed as coded in "phytosize_main_revised.R". To plot dates correctly, we use (dates.csv) and for merging the phytoplankton data with associated environmental variables, we use a larger set of environmental data from a monitoring integration project (MARISCO_pp_wadden_env.csv).
 
 ## Metadata
 
